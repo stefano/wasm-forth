@@ -6,6 +6,6 @@
   "author": "",
   "license": "GPL-3.0",
   "dependencies": {
-    "wasm-forth": "^1.0.0"
+    "wasm-forth": "^1.0.1"
   }
 }
