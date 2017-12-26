@@ -47,8 +47,8 @@ plugin to distribute `kernel.wasm` and `core.f`.
 
 You can also use this library without a module bundler by loading it in a <script> tag.
 
-See https://github.com/stefano/wasm-forth/examples/webpack/ for an example usage with webpack,
-and https://github.com/stefano/wasm-forth/examples/script/ for an example usage as a <script> tag.
+See https://github.com/stefano/wasm-forth/tree/master/examples/webpack for an example usage with webpack,
+and https://github.com/stefano/wasm-forth/tree/master/examples/script for an example usage as a <script> tag.
 
 Building from source
 ====================
