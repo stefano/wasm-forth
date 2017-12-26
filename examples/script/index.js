@@ -1,0 +1,9 @@
+WasmForth.boot({
+    wasmURL: 'node_modules/wasm-forth/dist/kernel.wasm',
+    coreURL: 'node_modules/wasm-forth/dist/core.f',
+    write: (text) => {
+        document.getElementById('content').textContent += text;
+    }
+}).then(() => {
+    WasmForth.source(': HELLO S" Hello, World!" TYPE ; HELLO');
+});

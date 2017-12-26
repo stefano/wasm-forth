@@ -20,10 +20,12 @@ Usage
 The following code instantiates the interpeter and runs a program that prints "Hello, World!" to the console:
 
     import * as WasmForth from 'wasm-forth';
+    import wasmURL from 'wasm-forth/dist/kernel.wasm';
+    import coreURL from 'wasm-forth/dist/core.f';
 
     WasmForth.boot({
-        wasmURL: 'npm_dist/kernel.wasm',
-        coreURL: 'npm_dist/core.f',
+        wasmURL,
+        coreURL,
         write: (text) => {
             console.log(text);
         }
@@ -44,6 +46,9 @@ If you're using webpack, you can use the file-loader (https://github.com/webpack
 plugin to distribute `kernel.wasm` and `core.f`.
 
 You can also use this library without a module bundler by loading it in a <script> tag.
+
+See https://github.com/stefano/wasm-forth/examples/webpack/ for an example usage with webpack,
+and https://github.com/stefano/wasm-forth/examples/script/ for an example usage as a <script> tag.
 
 Building from source
 ====================

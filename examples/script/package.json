@@ -1,0 +1,11 @@
+{
+  "name": "example",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "author": "",
+  "license": "GPL-3.0",
+  "dependencies": {
+    "wasm-forth": "^1.0.0"
+  }
+}

@@ -5,9 +5,10 @@ let wasmForth = {
         main: './src/index.js'
     },
     output: {
-        path: path.resolve(__dirname, 'npm_dist'),
+        path: path.resolve(__dirname, 'dist'),
         filename: 'wasm-forth.js',
-        library: 'WasmForth'
+        library: 'WasmForth',
+        libraryTarget: 'umd'
     }
 };
 

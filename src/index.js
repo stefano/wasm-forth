@@ -63,8 +63,8 @@ export function source(text) {
  *
  * @param config
  * {
- *     wasmURL: string; // URL to npm_dist/kernel.wasm
- *     coreURL: string; // URL to npm_dist/core.f
+ *     wasmURL: string; // URL to dist/kernel.wasm
+ *     coreURL: string; // URL to dist/core.f
  *     write: (text) => void; // a function called with the output emitted by Forth code
  * }
  *
