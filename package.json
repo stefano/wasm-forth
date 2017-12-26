@@ -1,6 +1,6 @@
 {
   "name": "wasm-forth",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A Forth implementation compiling to WebAssembly.",
   "main": "dist/wasm-forth.js",
   "module": "src/index.js",
