@@ -1,6 +1,6 @@
-Run this example:
+To run this example:
 
     $ npm install
     $ python3 -m http.server 8080
 
-Open the browser at http://localhost:8080
+then open the browser at http://localhost:8080

@@ -17,7 +17,7 @@ Installation
 Usage
 =====
 
-The following code instantiates the interpeter and runs a program that prints "Hello, World!" to the console:
+The following code instantiates the interpreter and runs a program that prints "Hello, World!" to the console:
 
     import * as WasmForth from 'wasm-forth';
     import wasmURL from 'wasm-forth/dist/kernel.wasm';
@@ -75,4 +75,4 @@ To serve it locally, follow the instructions above and then run the following co
 
     $ python kernel --demo-repl
 
-The REPL will be server at http://localhost:8080/
+The REPL will be served at http://localhost:8080/
