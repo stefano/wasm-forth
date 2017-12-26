@@ -1,0 +1,48 @@
+html {
+    background-color: #002b36;
+    color: #93a1a1;
+    font-family: monospace;
+}
+
+body {
+    margin: 2em auto;
+    width: 70ch;
+    font-size: 14px;
+}
+
+h1 {
+    font-size: 1.5em;
+}
+
+#input {
+    display: flex;
+}
+
+#source-input {
+    flex: 1;
+    margin-right: 1em;
+    border: none;
+    caret-color: #859900;
+    border-bottom: 1px solid #859900;
+    padding-bottom: 0.5em;
+    color: #93a1a1;
+    background-color: #002b36;
+}
+
+button {
+    background: none;
+    border: none;
+    color: #859900;
+    cursor: pointer;
+    padding: 0;
+}
+
+button::-moz-focus-inner, input::-moz-focus-inner {
+    border: 0;
+    padding: 0;
+}
+
+button:active {
+    padding: 0;
+    color: #2aa198;
+}

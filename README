@@ -1,0 +1,19 @@
+A Forth implementation compiling to WebAssembly.
+
+To build from sources:
+
+- Install binaryen (https://github.com/WebAssembly/binaryen) and ensure libbinaryen.so is in the library path.
+- Run:
+
+    $ python3.6 -m venv env
+    $ source env/bin/activate
+    $ python setup.py build_ext -L path/to/binaryen/lib/
+    $ python setup.py develop
+    $ python kernel
+
+- The kernel will be built and stored as dist/kernel.wasm
+
+To build the JS code, run:
+
+    $ npm install
+    $ npm run build

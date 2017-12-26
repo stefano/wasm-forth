@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <title>WASM Forth - Interactive Environment</title>
+        <meta charset="utf-8"/>
+        <link rel="stylesheet" type="text/css" href="repl.css"/>
+    </head>
+
+    <body>
+        <h1>WASM Forth - Interactive Environment</h1>
+        <div id="loading">Loading...</div>
+        <div id="content" style="display: none">
+            <pre id="output"></pre>
+
+            <div id="input">
+                <input id="source-input" type="text" tabindex="0"/>
+                <button id="enter">Enter</button>
+            </div>
+        </div>
+
+        <script type="text/javascript" src="dist/repl.js"></script>
+    </body>
+</html>

@@ -1,0 +1,29 @@
+{
+  "name": "wasm-forth",
+  "version": "1.0.0",
+  "description": "A Forth implementation compiling to WebAssembly.",
+  "main": "dist/wasm-forth.js",
+  "module": "src/index.js",
+  "files": [
+    "dist",
+    "README",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "webpack",
+    "watch": "webpack --watch",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "forth",
+    "wasm",
+    "WebAssembly",
+    "compiler",
+    "interpreter"
+  ],
+  "author": "Stefano Dissegna",
+  "license": "GPL-3.0",
+  "devDependencies": {
+    "webpack": "^3.10.0"
+  }
+}
