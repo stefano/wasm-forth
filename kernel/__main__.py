@@ -7,10 +7,10 @@ import assembler
 
 BASE_PATH = os.path.abspath(os.path.dirname(__file__))
 
-assembler.build_kernel(os.path.join(BASE_PATH, '../dist/kernel.wasm'))
+assembler.build_kernel(os.path.join(BASE_PATH, '../npm_dist/kernel.wasm'))
 shutil.copy(
     os.path.join(BASE_PATH, 'forth/core.f'),
-    os.path.join(BASE_PATH, '../dist/core.f'),
+    os.path.join(BASE_PATH, '../npm_dist/core.f'),
 )
 
 if len(sys.argv) > 1 and sys.argv[1] == '--demo-repl':
@@ -22,7 +22,7 @@ if len(sys.argv) > 1 and sys.argv[1] == '--demo-repl':
         os.path.join(BASE_PATH, '../repl/dist/core.f'),
     )
     shutil.copy(
-        os.path.join(BASE_PATH, '../dist/kernel.wasm'),
+        os.path.join(BASE_PATH, '../npm_dist/kernel.wasm'),
         os.path.join(BASE_PATH, '../repl/dist/kernel.wasm'),
     )
 

@@ -63,13 +63,12 @@ export function source(text) {
  *
  * @param config
  * {
- *     wasmURL: string; // (required) path to forth.wasm
- *     coreURL: string; // (required) path to core.fs
- *     write: (text) => void; // (optional) a function called to emit output emitted by Forth code
- *                            // by default, emit to the console
+ *     wasmURL: string; // URL to npm_dist/kernel.wasm
+ *     coreURL: string; // URL to npm_dist/core.f
+ *     write: (text) => void; // a function called with the output emitted by Forth code
  * }
  *
- * @returns {Promise} resolved when the system is ready to process forth code (see source())
+ * @returns {Promise} resolved when the system is ready to process forth code.
  */
 export function boot(config) {
     return fetch(config.wasmURL).then(
@@ -79,7 +78,7 @@ export function boot(config) {
     ).then(compiled => {
         interpreter = compiled.instance;
         memBytes = new Uint8Array(interpreter.exports.mem.buffer);
-        window.memBytes = memBytes; // debug only
+        window.memBytes = memBytes;
 
         interpreter.exports.exec(0, 0);
     }).then(

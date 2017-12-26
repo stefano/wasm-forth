@@ -1,7 +1,7 @@
 import * as WasmForth from '../src/index';
 
 let loadingElement = document.getElementById('loading');
-let content = document.getElementById('content');
+let inputElement = document.getElementById('input');
 let sourceInputElement = document.getElementById('source-input');
 let enterElement = document.getElementById('enter');
 let outputElement = document.getElementById('output');
@@ -28,12 +28,13 @@ WasmForth.boot({
     coreURL: 'dist/core.f',
     write: (text) => {
         outputElement.innerText += text;
+        outputElement.scrollTop = outputElement.scrollHeight;
     }
 }).then(() => {
     sourceInputElement.addEventListener('keypress', onInputLine);
     enterElement.addEventListener('click', processLine);
 
     loadingElement.parentElement.removeChild(loadingElement);
-    content.style.display = 'block';
+    inputElement.removeAttribute('style');
     sourceInputElement.focus();
 });

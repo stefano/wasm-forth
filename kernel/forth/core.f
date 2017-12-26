@@ -311,4 +311,17 @@ VARIABLE #SIZE
 : <> ( x1 x2 - flag )
   = INVERT ;
 
-0 QUIET !
+( non-standard utilities )
+
+19 1024 * CELL+ CONSTANT SP0
+: sl ( -- n ) SP@ CELL+ SP0 SWAP - 0 CELL+ /MOD SWAP DROP ;
+: .NOSPACE ( n -- ) DUP ABS S>D <# #S ROT SIGN #> TYPE ;
+: .sl ( -- ) S" <" TYPE sl .NOSPACE S" > " TYPE ;
+: PEEK ( u -- x ) 1+ CELLS SP0 SWAP - @ ;
+: .sitem ( u -- ) PEEK . ;
+: .s ( -- ) .sl sl 0 > IF sl 0 DO I .sitem LOOP THEN ;
+
+: READY ( -- )
+  S" Ready" TYPE ;
+
+READY 0 QUIET !

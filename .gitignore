@@ -1,4 +1,5 @@
 /dist
+/npm_dist
 /repl/dist
 /node_modules
 /wasm_forth.egg-info

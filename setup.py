@@ -19,7 +19,6 @@ setup(
     license='GPLv3',
     keywords='forth wasm WebAssembly compiler interpreter',
     classifiers=[
-        'Development Status :: 2 - Pre-Alpha',
         'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
         'Programming Language :: Python :: 3',
         'Topic :: Software Development :: Interpreters',

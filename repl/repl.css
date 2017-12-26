@@ -1,3 +1,7 @@
+html, body {
+    height: 100%;
+}
+
 html {
     background-color: #002b36;
     color: #93a1a1;
@@ -5,17 +9,27 @@ html {
 }
 
 body {
-    margin: 2em auto;
-    width: 70ch;
+    margin: 0 auto;
+    padding: 2em;
+    max-width: 70ch;
     font-size: 14px;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
 }
 
 h1 {
     font-size: 1.5em;
 }
 
+#output {
+    white-space: pre-wrap;
+    overflow-y: auto;
+}
+
 #input {
     display: flex;
+    flex-shrink: 0;
 }
 
 #source-input {
@@ -26,7 +40,9 @@ h1 {
     border-bottom: 1px solid #859900;
     padding-bottom: 0.5em;
     color: #93a1a1;
+    font-family: monospace;
     background-color: #002b36;
+    outline: none;
 }
 
 button {
