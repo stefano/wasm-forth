@@ -10,8 +10,8 @@ CELL_TYPE = lib.BinaryenInt32()
 DOUBLE_CELL_TYPE = lib.BinaryenInt64()
 
 # Interpreter parameters
-CONT = 0
-CONT_RES = 1
+TASK_BASE_PARAM = 0
+TASK_PARAM = 1
 
 # registers, stored as local variables in the evaluation function
 IP = 2  # instruction pointer
@@ -25,43 +25,44 @@ SCRATCH_DOUBLE_1 = 9 # whatever
 
 # Memory layout:
 
-# bytes: 0 ... 16: registers
-IP_MEM_ADDR = 0
-W_MEM_ADDR = IP_MEM_ADDR + CELL_SIZE
-SP_MEM_ADDR = W_MEM_ADDR + CELL_SIZE
-RS_MEM_ADDR = SP_MEM_ADDR + CELL_SIZE
+# bytes: 0 .. 11k: main task memory area
+MAIN_TASK_BASE_VALUE = 0
 
-# bytes: 16 ... 20: address of initial forth word to run when the
-# interpreter starts
-IP_INITIAL = RS_MEM_ADDR + CELL_SIZE
+# bytes: 0 .. 12: main task saved registers
+# register offsets, registers are saved/loaded from get_reg(TASK_BASE_PARAM) + OFFSET
+IP_MEM_OFFSET = 0
+SP_MEM_OFFSET = IP_MEM_OFFSET + CELL_SIZE
+RS_MEM_OFFSET = SP_MEM_OFFSET + CELL_SIZE
 
-# bytes: 20 ... 1k: random bytes (to avoid a simple return stack
+# bytes: 12 .. 16: offset to the address of the initial forth word to run when the interpreter starts
+IP_INITIAL_OFFSET = RS_MEM_OFFSET + CELL_SIZE
+
+# bytes: 16 ... 1k: random bytes (to avoid a simple return stack
 # overflow to overwrite the registers)
 
 # bytes: 1k ... 5k: return stack
-RS_INITIAL = 5 * 1024 + CELL_SIZE  # stack empty, point one cell above start of stack
+RS_INITIAL_OFFSET = 5 * 1024 + CELL_SIZE  # stack empty, point one cell above start of stack
 
 # bytes: 5k ... 6k: random bytes (to avoid a simple return stack
-# underflow to overwrite the registers)
+# underflow to overwrite the params stack)
 
-# bytes: 6k ... 10k: I/O buffers
-BUFFER_START = 6 * 1024
+# bytes: 6k ... 10k: params stack
+SP_INITIAL_OFFSET = 10 * 1024 + CELL_SIZE  # stack empty, point one cell above start of stack
 
-# bytes: 10k ... 14k: pad (multi-purpose memory area for use by forth code)
-PAD_START = 10 * 1024
+# bytes: 10k ... 11k: random bytes (to avoid a simple params stack
+# underflow to overwrite the buffers)
 
-# bytes: 14k ... 15k: random bytes (to avoid a simple params stack
-# overflow to overwrite the registers)
+# main task memory area ends here
 
-# bytes: 15k ... 19k: params stack
-SP_INITIAL = 19 * 1024 + CELL_SIZE  # stack empty, point one cell above start of stack
+# bytes: 11k ... 15k: I/O buffers
+BUFFER_START = 11 * 1024
 
-# bytes: 19k ... 19k+511: random bytes (to avoid a simple params stack
-# underflow to overwrite the registers)
+# bytes: 15k ... 19k: pad (multi-purpose memory area for use by forth code)
+PAD_START = 15 * 1024
 
-# bytes: 19k+512 ... 20k: scratch area used by the interpreter to keep
+# bytes: 19k ... 20k: scratch area used by the interpreter to keep
 # parsed words
-INTERPRET_WORD = 19 * 1024 + 512
+INTERPRET_WORD = 19 * 1024
 
-# bytes: 20k ... 64k: dictionary
+# bytes: 20k ... : dictionary
 HERE_INITIAL = 20 * 1024

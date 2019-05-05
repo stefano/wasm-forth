@@ -8,6 +8,7 @@ let outputElement = document.getElementById('output');
 
 function onInputLine(evt) {
     if (evt.keyCode === 13) {
+        evt.preventDefault();
         processLine();
     }
 }
@@ -25,7 +26,7 @@ function processLine() {
 
 WasmForth.boot({
     wasmURL: 'dist/kernel.wasm',
-    coreURL: 'dist/core.f',
+    sources: ['dist/core.f', 'dist/vdom.f'],
     write: (text) => {
         outputElement.innerText += text;
         outputElement.scrollTop = outputElement.scrollHeight;

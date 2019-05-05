@@ -4,10 +4,14 @@ WASM Forth
 A Forth implementation compiling to WebAssembly.
 
 It includes an ANS Forth standard environment containing all the CORE words.
-The system has a fixed amount of memory available, currently 128kb.
+The system has a fixed amount of memory available, currently 128 MB.
 
 Interaction with Javascript at the moment is limited to textual input (using `WasmForth.source`)
 and output (through the `write` configuration parameter passed to `WasmForth.boot`).
+
+Using the included (optional) virtual DOM library it's possible to
+write interactive web apps. See the code in `examples/todomvc/` for an
+example TODO list web app fully implemented in Forth.
 
 Installation
 ============
@@ -22,10 +26,11 @@ The following code instantiates the interpreter and runs a program that prints "
     import * as WasmForth from 'wasm-forth';
     import wasmURL from 'wasm-forth/dist/kernel.wasm';
     import coreURL from 'wasm-forth/dist/core.f';
+    import vdomURL from 'wasm-forth/dist/vdom.f';
 
     WasmForth.boot({
         wasmURL,
-        coreURL,
+        sources: [coreURL, vdomURL],
         write: (text) => {
             console.log(text);
         }
@@ -34,21 +39,23 @@ The following code instantiates the interpreter and runs a program that prints "
     });
 
 `WasmForth.boot({ ... })` initializes the system and returns a Promise. Once resolved, it's possible to
-interpret forth code by passing it to `WasmForth.source(string)`.
+interpret forth code by passing it to `WasmForth.source(string)`. Note that the string passed must end with a newline.
 
 `WasmForth.boot` accepts a configuration object with 3 required parameters:
 
 - `wasmURL`: URL where to fetch the "kernel.wasm" included in the NPM package.
-- `coreURL`: URL where to fetch the "core.f" included in the NPM package.
+- `sources`: a list of URLs where to fetch the forth "core.f" included in the NPM package.
 - `write`: a function that will be called when the forth code needs to output text.
 
 If you're using webpack, you can use the file-loader (https://github.com/webpack-contrib/file-loader)
-plugin to distribute `kernel.wasm` and `core.f`.
+plugin to distribute `kernel.wasm`, `core.f` and `vdom.f`.
 
 You can also use this library without a module bundler by loading it in a <script> tag.
 
 See https://github.com/stefano/wasm-forth/tree/master/examples/webpack for an example usage with webpack,
 and https://github.com/stefano/wasm-forth/tree/master/examples/script for an example usage as a <script> tag.
+
+See https://github.com/stefano/wasm-forth/tree/master/examples/todomvc for an example of a full web app that interacts with the DOM.
 
 Building from source
 ====================

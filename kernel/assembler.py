@@ -2,7 +2,7 @@ from _binaryen_c import ffi, lib
 
 from asm_ops import *
 from binaryen_module import module, retain_gc, release_gc
-from code_words import init_registers, CODE_WORDS
+from code_words import load_registers, CODE_WORDS
 from forth_interpreter import FORTH_CONSTANTS, FORTH_VARIABLES, FORTH_COL_DEFS
 from memory_layout import *
 
@@ -34,12 +34,22 @@ def add_imports():
     Add FFI imports to the module (io.read and io.write).
     """
 
+    iii_params = ffi.new('BinaryenType[3]', [CELL_TYPE] * 3)
+    iiin = lib.BinaryenAddFunctionType(module, b'iiin', lib.BinaryenNone(), iii_params, 3)
+
     ii_params = ffi.new('BinaryenType[2]', [CELL_TYPE] * 2)
     iin = lib.BinaryenAddFunctionType(module, b'iin', lib.BinaryenNone(), ii_params, 2)
 
-    lib.BinaryenAddImport(module, b'read', b'io', b'read', iin)
-    lib.BinaryenAddImport(module, b'write', b'io', b'write', iin)
+    iiii_params = ffi.new('BinaryenType[4]', [CELL_TYPE] * 4)
+    iiii_i = lib.BinaryenAddFunctionType(module, b'iiiii', lib.BinaryenInt32(), iiii_params, 4)
 
+    lib.BinaryenAddFunctionImport(module, b'read', b'io', b'read', iiin)
+    lib.BinaryenAddFunctionImport(module, b'write', b'io', b'write', iin)
+    lib.BinaryenAddFunctionImport(module, b'patchBody', b'io', b'patchBody', iin)
+    lib.BinaryenAddFunctionImport(module, b'evtAttr', b'io', b'evtAttr', iiii_i)
+
+    retain_gc(iiii_params)
+    retain_gc(iii_params)
     retain_gc(ii_params)
 
 
@@ -69,21 +79,32 @@ def add_initial_memory():
     # set HERE to HERE_INITIAL + len(dictionary_bytes)
     replace_forth_variable_value(dictionary_bytes, forth_words_addrs, '\'HERE', HERE_INITIAL + len(dictionary_bytes))
 
-    # address of first forth word to run (i.e. initial value of the IP register)
+    # main task saved registers initial values, will be loaded into registers when the interpreter first boots
+    reg_initial_bytes = []
+    append_cell(reg_initial_bytes, MAIN_TASK_BASE_VALUE + IP_INITIAL_OFFSET)
+    append_cell(reg_initial_bytes, MAIN_TASK_BASE_VALUE + SP_INITIAL_OFFSET)
+    append_cell(reg_initial_bytes, MAIN_TASK_BASE_VALUE + RS_INITIAL_OFFSET)
+
+    # address of first forth word to run
     ip_initial_bytes = []
     append_cell(ip_initial_bytes, forth_words_addrs['ABORT'])
 
     dictionary_data = ffi.new('char[]', bytes(dictionary_bytes))
+    reg_initial_data = ffi.new('char[]', bytes(reg_initial_bytes))
     ip_initial_data = ffi.new('char[]', bytes(ip_initial_bytes))
 
-    segment_contents = ffi.new('char*[]', [ip_initial_data, dictionary_data])
-    segment_offsets = ffi.new('BinaryenExpressionRef[]', [const_cell(IP_INITIAL), const_cell(HERE_INITIAL)])
-    segment_sizes = ffi.new('BinaryenIndex[]', [len(ip_initial_bytes), len(dictionary_bytes)])
+    segment_contents = ffi.new('char*[]', [reg_initial_data, ip_initial_data, dictionary_data])
+    segment_offsets = ffi.new('BinaryenExpressionRef[]', [const_cell(MAIN_TASK_BASE_VALUE),
+                                                          const_cell(MAIN_TASK_BASE_VALUE + IP_INITIAL_OFFSET),
+                                                          const_cell(HERE_INITIAL)])
+    segment_sizes = ffi.new('BinaryenIndex[]', [len(reg_initial_bytes), len(ip_initial_bytes), len(dictionary_bytes)])
+    segments_passive = ffi.new('char[]', bytes([0, 0, 0]))
 
-    # 2 = 128k
-    lib.BinaryenSetMemory(module, 2, 2, b'mem', segment_contents, segment_offsets, segment_sizes, 2)
+    # memory size is given in number of 64 KB pages,
+    # in this case we use a fixed 128 MB size
+    lib.BinaryenSetMemory(module, 2048, 2048, b'mem', segment_contents, segments_passive, segment_offsets, segment_sizes, 3, 0)
 
-    retain_gc(dictionary_data, ip_initial_data, segment_contents, segment_offsets, segment_sizes)
+    retain_gc(dictionary_data, reg_initial_data, segment_contents, segment_offsets, segment_sizes, segments_passive)
 
 
 def add_interpreter():
@@ -105,7 +126,7 @@ def add_interpreter():
     registers[SCRATCH_DOUBLE_1 - 2] = DOUBLE_CELL_TYPE
 
     exec_body = block(
-        init_registers(),
+        load_registers(),
         assemble_interpreter(),
         label='entry',
     )

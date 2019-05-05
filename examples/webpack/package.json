@@ -9,7 +9,7 @@
     "build": "webpack"
   },
   "dependencies": {
-    "wasm-forth": "^1.0.1"
+    "wasm-forth": "^2.0.0"
   },
   "devDependencies": {
     "file-loader": "^1.1.6",

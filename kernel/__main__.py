@@ -12,10 +12,11 @@ if not os.path.exists(DIST_PATH):
     os.makedirs(DIST_PATH)
 
 assembler.build_kernel(os.path.join(DIST_PATH, 'kernel.wasm'))
-shutil.copy(
-    os.path.join(BASE_PATH, 'forth/core.f'),
-    os.path.join(DIST_PATH, 'core.f'),
-)
+for file_name in ('core.f', 'vdom.f'):
+    shutil.copy(
+        os.path.join(BASE_PATH, os.path.join('forth', file_name)),
+        os.path.join(DIST_PATH, file_name),
+    )
 
 if len(sys.argv) > 1 and sys.argv[1] == '--demo-repl':
     import http.server
@@ -26,10 +27,11 @@ if len(sys.argv) > 1 and sys.argv[1] == '--demo-repl':
     if not os.path.exists(REPL_DIST_PATH):
         os.makedirs(REPL_DIST_PATH)
 
-    shutil.copy(
-        os.path.join(BASE_PATH, 'forth/core.f'),
-        os.path.join(REPL_DIST_PATH, 'core.f'),
-    )
+    for file_name in ('core.f', 'vdom.f'):
+        shutil.copy(
+            os.path.join(BASE_PATH, 'forth', file_name),
+            os.path.join(REPL_DIST_PATH, file_name),
+        )
     shutil.copy(
         os.path.join(DIST_PATH, 'kernel.wasm'),
         os.path.join(REPL_DIST_PATH, 'kernel.wasm'),

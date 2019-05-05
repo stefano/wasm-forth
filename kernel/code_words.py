@@ -5,25 +5,6 @@ Basic Forth words defined directly in WebAssembly.
 from asm_ops import *
 
 
-def init_registers():
-    return [
-        set_reg(IP, const_cell(IP_INITIAL)),
-        # register W doesn't need to be initialized
-        set_reg(SP, const_cell(SP_INITIAL)),
-        set_reg(RS, const_cell(RS_INITIAL)),
-        block(
-            jmp('init_registers', cond_expr=eqz(get_reg(CONT))),
-            # Re-entering the interpreter after an FFI call.
-            # Reload registers state from memory
-            load_registers(),
-            # Push into stack the result received (i.e. the
-            # continuation result).
-            push(SP, get_reg(CONT_RES)),
-            label='init_registers',
-        ),
-    ]
-
-
 def store_registers():
     """
     Store registers into the memory, so the interpeter can be restarted,
@@ -33,9 +14,9 @@ def store_registers():
     # NOTE: it's not necessary to store/reload register W, its value
     # will be refreshed from the IP
     return [
-        store_cell(const_cell(IP_MEM_ADDR), get_reg(IP)),
-        store_cell(const_cell(SP_MEM_ADDR), get_reg(SP)),
-        store_cell(const_cell(RS_MEM_ADDR), get_reg(RS)),
+        store_cell(_register_mem_addr(IP_MEM_OFFSET), get_reg(IP)),
+        store_cell(_register_mem_addr(SP_MEM_OFFSET), get_reg(SP)),
+        store_cell(_register_mem_addr(RS_MEM_OFFSET), get_reg(RS)),
     ]
 
 
@@ -46,10 +27,14 @@ def load_registers():
     """
 
     return [
-        set_reg(IP, load_cell(const_cell(IP_MEM_ADDR))),
-        set_reg(SP, load_cell(const_cell(SP_MEM_ADDR))),
-        set_reg(RS, load_cell(const_cell(RS_MEM_ADDR))),
+        set_reg(IP, load_cell(_register_mem_addr(IP_MEM_OFFSET))),
+        set_reg(SP, load_cell(_register_mem_addr(SP_MEM_OFFSET))),
+        set_reg(RS, load_cell(_register_mem_addr(RS_MEM_OFFSET))),
     ]
+
+
+def _register_mem_addr(offset):
+    return add(get_reg(TASK_BASE_PARAM), const_cell(offset))
 
 
 def _branch():
@@ -73,19 +58,32 @@ def _branch():
     ]
 
 
-def _call_iin(name):
+def _call_iin_sync(name):
+    return [
+        call_iin(name, peek(SP, 1), peek(SP, 0)),
+        drop(SP, 2),
+    ]
+
+
+def _call_iiii_i_sync(name):
+    return [
+        put(SP, 3, call_iiii_i(name, peek(SP, 3), peek(SP, 2), peek(SP, 1), peek(SP, 0))),
+        drop(SP, 3),
+    ]
+
+
+def _call_iiin_async(name):
     return [
         # store in temporary registers, so we can drop
         # from the stack before executing the FFI call
         set_reg(SCRATCH_1, peek(SP, 1)),
         set_reg(SCRATCH_2, peek(SP, 0)),
         drop(SP, 2),
-        # store before the FFI call, so it can re-enter the interpeter both synchronously
-        # and asynchronously
+        # store before the FFI call, so it can re-enter the interpeter asynchronously
         store_registers(),
-        call_iin(name, get_reg(SCRATCH_1), get_reg(SCRATCH_2)),
-        # quit immediately, the FFI call might have re-entered
-        # the interpreter multiple times already!
+        call_iiin(name, get_reg(TASK_BASE_PARAM), get_reg(SCRATCH_1), get_reg(SCRATCH_2)),
+        # quit, it's responsibility of the FFI call to restart the
+        # interpreter in a future next event loop cycle
         jmp('entry'),
     ]
 
@@ -113,15 +111,38 @@ CODE_WORDS = [
         set_reg(IP, load_cell(get_reg(W))),
         jmp('next'),
     ]),
-    # FFI (non-standard words)
-    # these quit the interpreter. The called foreign function must then re-enter it.
-    ('READ', [  # ( c-addr u1 -- u2 )
-        _call_iin('read'),
+    # FFI (non-standard words, async)
+    # these quit the interpreter. The called foreign function must then re-enter it. Return value is obtained using 'task-param'.
+    ('READ', [  # ( c-addr u1 -- )
+        _call_iiin_async('read'),
     ]),
-    ('WRITE', [  # ( c-addr u1 -- u2 )
-        _call_iin('write'),
+    # FFI (sync)
+    ('WRITE', [  # ( c-addr u1 -- )
+        _call_iin_sync('write'),
+        jmp('next'),
+    ]),
+    ('PATCH-BODY', [ # ( addr u1 -- )
+	_call_iin_sync('patchBody'),
+        jmp('next'),
+    ]),
+    ('EVT-ATTR', [ # ( addr1 u1 addr2 u2 -- u3 )
+	_call_iiii_i_sync('evtAttr'),
+        jmp('next'),
     ]),
     # Non-standard extensions, useful to implement the interpreter
+    ('task-base', [ # ( -- addr )
+        push(SP, get_reg(TASK_BASE_PARAM)),
+        jmp('next'),
+    ]),
+    ('task-base!', [ # ( addr -- )
+        set_reg(TASK_BASE_PARAM, peek(SP, 0)),
+        drop(SP, 1),
+        jmp('next'),
+    ]),
+    ('task-param', [ # ( -- x )
+        push(SP, get_reg(TASK_PARAM)),
+        jmp('next'),
+    ]),
     ('lit', [ # ( -- x )
         # load literal value kept in next cell, which is now pointed by IP
         push(SP, load_cell(get_reg(IP))),
@@ -311,6 +332,11 @@ CODE_WORDS = [
     ]),
     ('DUP', [  # ( x -- x x )
         push(SP, peek(SP, 1)),
+        jmp('next'),
+    ]),
+    ('2DUP', [  # ( x1 x2 -- x1 x2 x1 x2 )
+        inc(SP, -2),
+        store_double_cell(get_reg(SP), load_double_cell(get_reg(SP), 2)),
         jmp('next'),
     ]),
     ('SWAP', [  # ( x1 x2 -- x2 x1 )

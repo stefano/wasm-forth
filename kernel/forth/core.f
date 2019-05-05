@@ -39,7 +39,7 @@
   lit GET-EMBEDDED-STR , EMBED-STR ; IMMEDIATE
 
 : ." ( "ccc<quote>" -- )
-  lit GET-EMBEDDED-STR , EMBED-STR lit WRITE , lit DROP , ; IMMEDIATE
+  lit GET-EMBEDDED-STR , EMBED-STR lit WRITE , ; IMMEDIATE
 
 : IF ( compilation: C: -- orig, runtime: x -- )
   lit ?branch , HERE 0 , ( placeholder, filled in by THEN/ELSE )
@@ -159,7 +159,7 @@ VARIABLE #SIZE
   DUP 0 < IF 0 SWAP - THEN ;
 
 : TYPE ( c-addr u -- )
-  WRITE DROP ;
+  WRITE ;
 
 : . ( n -- )
   DUP ABS S>D <# BL HOLD #S ROT SIGN #> TYPE ;
@@ -300,20 +300,20 @@ VARIABLE #SIZE
   0 > ;
 
 : 2>R ( x1 x2 -- R: -- x1 x2 )
-  SWAP >R >R ;
+  R> ROT >R SWAP >R >R ;
 
 : 2R> ( -- x1 x2 R: x1 x2 -- )
-  R> R> SWAP ;
+  R> R> R> SWAP ROT >R ;
 
 : 2R@ ( -- x1 x2 R: x1 x2 -- x1 x2 )
-  R> R> 2DUP >R >R SWAP ;
+  R> R> R> 2DUP >R >R ROT >R SWAP ;
 
 : <> ( x1 x2 - flag )
   = INVERT ;
 
 ( non-standard utilities )
 
-19 1024 * CELL+ CONSTANT SP0
+: SP0 ( -- addr ) 10 1024 * CELL+ task-base + ;
 : sl ( -- n ) SP@ CELL+ SP0 SWAP - 0 CELL+ /MOD SWAP DROP ;
 : .NOSPACE ( n -- ) DUP ABS S>D <# #S ROT SIGN #> TYPE ;
 : .sl ( -- ) S" <" TYPE sl .NOSPACE S" > " TYPE ;
@@ -321,7 +321,41 @@ VARIABLE #SIZE
 : .sitem ( u -- ) PEEK . ;
 : .s ( -- ) .sl sl 0 > IF sl 0 DO I .sitem LOOP THEN ;
 
-: READY ( -- )
-  S" Ready" TYPE ;
+( setup cooperative multi tasking )
 
-READY 0 QUIET !
+11 1024 * CONSTANT task-size
+5 1024 * CELL+ CONSTANT task-rs-offset
+3 CELLS CONSTANT task-ip-initial-offset
+0 CONSTANT ip-mem-offset
+
+VARIABLE task-free-block 0 task-free-block !
+
+: find-free-block ( -- addr flag )
+  task-free-block @ DUP 0= IF 0 EXIT THEN
+  DUP @ task-free-block ! 1 ;
+: create-block ( -- addr ) HERE task-size ALLOT ;
+: alloc-block ( -- addr ) find-free-block 0= IF DROP create-block THEN ;
+: release-block ( addr -- ) task-free-block @ OVER ! task-free-block ! ;
+
+: end-task ( -- ) task-base release-block BYE ;
+: new-task ( xt -- )
+  alloc-block task-base!
+  >R RESET-SP R>
+  task-base task-rs-offset + RP!
+  EXECUTE end-task ;
+: start-task ( -- ) task-param new-task ;
+
+: ready ( -- ) ." Ready" CR 0 QUIET ! RESET-SP 0 (QUIT) ;
+: setup-tasks ( -- )
+  ( must be within word definition, or an async FFI call from the interpreter will mess it up )
+  task-base task-ip-initial-offset + task-base ip-mem-offset + !
+  ( start-task is the new main task )
+  ['] start-task task-base task-ip-initial-offset + !
+  ( run interpreter in new task )
+  ['] ready new-task ;
+
+: (abort-task") ( c-str u -- ) TYPE end-task ;
+: abort-task" ( compilation: "<ccc>quote" --, runtime: -- )
+  ['] GET-EMBEDDED-STR , EMBED-STR ['] (abort-task") , ; IMMEDIATE
+
+setup-tasks ( must be last, since it calls ABORT which empties the I/O buffers )

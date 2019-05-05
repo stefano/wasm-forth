@@ -43,6 +43,8 @@ h1 {
     font-family: monospace;
     background-color: #002b36;
     outline: none;
+    resize: none;
+    height: 1.25em;
 }
 
 button {

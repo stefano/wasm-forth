@@ -137,18 +137,15 @@ FORTH_COL_DEFS = [
         '0 > ?branch :~REFILL', # ( newline-addr )
         'ADDR>IN-BUF-EOL! branch :~FINISH',
         '~REFILL',
-        'IN-BUF-MAX IN-BUF-SIZE @ - READ IN-BUF-SIZE +!', # ( )
+        'IN-BUF-MAX IN-BUF-SIZE @ - READ task-param IN-BUF-SIZE +!', # ( )
         # even if we don't find a newline now, consider it a newline
+        # TODO: show an error if we still didn't find a newline, a single line must be less than 4k chars long
         'SCAN-NEWLINE DROP ADDR>IN-BUF-EOL!',
         '~FINISH SOURCE',
     ),
     forth_def(
         'BL',  # ( -- c )
         ord(b' '),
-    ),
-    forth_def(
-        '2DUP',  # ( x -- x x )
-        'OVER OVER'
     ),
     forth_def(
         'CHAR+',  # ( a-addr1 -- a-addr2 )
@@ -303,30 +300,36 @@ FORTH_COL_DEFS = [
         # area
         'SOURCE SWAP DROP >IN @ SWAP < INVERT ?branch :~I-LOOP',
         '-1 EXIT',
-        '~NOT-NUMBER WORD-NOT-FOUND-ERR', len(WORD_NOT_FOUND_ERR), 'WRITE DROP R> COUNT WRITE DROP',
+        '~NOT-NUMBER WORD-NOT-FOUND-ERR', len(WORD_NOT_FOUND_ERR), 'WRITE R> COUNT WRITE',
     ),
     forth_def(
         'OK',  # ( -- )
-        'QUIET @ ?branch :~VERBOSE EXIT ~VERBOSE OK-MSG', len(OK_MSG), 'WRITE DROP',
+        'QUIET @ ?branch :~VERBOSE EXIT ~VERBOSE OK-MSG', len(OK_MSG), 'WRITE',
     ),
     forth_def(
         'RESET-SP',  # ( -- )
-        SP_INITIAL, 'SP!',
+        'task-base', SP_INITIAL_OFFSET, '+ SP!',
     ),
     forth_def(
-        'QUIT', # (  x*j -- y*i )
+        '(QUIT)', # (  x*j flag -- y*i ) if flag true, reset I/O buffers (on error, always reset anyway)
+        '?branch :~IOBUF',
         '~START',
-        RS_INITIAL, 'RP!',
         '0 SOURCE-ID !',
         BUFFER_START, 'IN-BUF !',
         -1, 'IN-BUF-EOL !',
         0, 'IN-BUF-SIZE !',
+        '~IOBUF',
+        'task-base', RS_INITIAL_OFFSET, '+ RP!',
         '0 STATE !',
         '~LOOP 0 >IN ! LINE DROP DROP INTERPRET',
         '0= ?branch :~OK',
         'RESET-SP branch :~START', # simulate abort without recursive calls
         '~OK STATE @ 0= ?branch :~LOOP OK', # show prompt only if in interpretation state
         'branch :~LOOP', # infinite loop
+    ),
+    forth_def(
+        'QUIT', # (  x*j -- y*i )
+        '1 (QUIT)',
     ),
     forth_def(
         'ABORT', # (  x*j -- y*i )

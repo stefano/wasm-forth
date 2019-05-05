@@ -67,12 +67,28 @@ def jmp(label, cond_expr=ffi.NULL):
 # Function calls
 
 
+def call_iiin(label, expr1, expr2, expr3):
+    params = ffi.new('BinaryenExpressionRef[3]', [expr1, expr2, expr3])
+
+    retain_gc(params)
+
+    return lib.BinaryenCall(module, label.encode('ascii'), params, 3, lib.BinaryenNone())
+
+
 def call_iin(label, expr1, expr2):
     params = ffi.new('BinaryenExpressionRef[2]', [expr1, expr2])
 
     retain_gc(params)
 
-    return lib.BinaryenCallImport(module, label.encode('ascii'), params, 2, lib.BinaryenNone())
+    return lib.BinaryenCall(module, label.encode('ascii'), params, 2, lib.BinaryenNone())
+
+
+def call_iiii_i(label, expr1, expr2, expr3, expr4):
+    params = ffi.new('BinaryenExpressionRef[4]', [expr1, expr2, expr3, expr4])
+
+    retain_gc(params)
+
+    return lib.BinaryenCall(module, label.encode('ascii'), params, 4, lib.BinaryenInt32())
 
 
 # Memory access
