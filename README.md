@@ -35,7 +35,7 @@ The following code instantiates the interpreter and runs a program that prints "
             console.log(text);
         }
     }).then(() => {
-        WasmForth.source(': HELLO S" Hello, World!" TYPE ; HELLO');
+        WasmForth.source(': HELLO S" Hello, World!" TYPE ; HELLO\n');
     });
 
 `WasmForth.boot({ ... })` initializes the system and returns a Promise. Once resolved, it's possible to
